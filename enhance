@@ -1,0 +1,140 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $output = shift or die help();
+
+while(1) {
+  my %cells;
+  my %markers;
+  my $time = "";
+
+  foreach my $input (@ARGV) {
+    open INPUT, '<', $input or die "cannot open $input: $!";
+    while(my $line = <INPUT>) {
+      chomp $line;
+      # print "$line\n";
+
+      if($line =~ m!^<small>(.*)</small><br>!) {
+        $time = $1;
+      } else {
+        push @{$cells{$time}}, $line;
+
+        if($line =~ m!.* ist .* gewählt\.!) {
+          push @{$markers{'Wahlen'}}, {
+            'id' => time2id($time),
+            'what' => $line,
+          };
+        }
+        if($line =~ m!Platz\s+\d+!) {
+          push @{$markers{'Plätze'}}, {
+            'id' => time2id($time),
+            'what' => $line,
+          };
+        }
+        if($line =~ m!\b((PP|GP|SÄA|SO|WP|RA|X)\d+)\b!) {
+          push @{$markers{$1}}, {
+            'id' => time2id($time),
+            'what' => $line,
+          };
+        }
+      }
+    }
+    close INPUT;
+  }
+
+  open OUTPUT, '>', $output or die "cannot open $output: $!";
+  print OUTPUT <<"EOH";
+  HTTP/1.0 200 OK
+  Content-type: text/html; charset=utf-8
+
+  <html><head>
+  <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+  <style>
+  table.marker th {
+    font-size: 100%;
+    font-weight: normal;
+  }
+  table.marker td {
+    border: 1px solid black;
+  }
+  th {
+    font-size: 50%;
+    font-weight: normal;
+    vertical-align: top;
+  }
+  div {
+    margin-left: 20px;
+    border: 1px solid black;
+    padding: 4px;
+  }
+  </style>
+  <script type="text/javascript">
+  var activeMarker = "";
+
+  function setActiveMarker(id) {
+    if(activeMarker != "") {
+      var o = document.getElementById(activeMarker);
+      o.style.display = "none";
+      var oh = document.getElementById("HEAD-" + activeMarker);
+      oh.style.backgroundColor = "";
+    }
+
+    if(id == activeMarker) {
+      activeMarker = "";
+      return;
+    }
+
+    activeMarker = id;
+
+    var n = document.getElementById(activeMarker);
+    n.style.display = "";
+
+    var nh = document.getElementById("HEAD-" + activeMarker);
+    nh.style.backgroundColor = "#C0C0FF";
+  }
+  </script>
+  </head><body>
+EOH
+  foreach my $h (sort keys %markers) {
+    print OUTPUT "<a id=\"HEAD-$h\" href=\"javascript:setActiveMarker('$h');\">$h</a> ";
+  }
+
+  foreach my $h (sort keys %markers) {
+    print OUTPUT "<div id=\"$h\" style=\"display: none;\">\n";
+    foreach my $ev (@{$markers{$h}}) {
+      print OUTPUT "<a href=\"#$ev->{'id'}\">$ev->{'what'}</a>\n";
+    }
+    print OUTPUT "</div>\n";
+  }
+
+  print OUTPUT "<table>\n";
+  foreach my $t (sort keys %cells) {
+    my $id = time2id($t);
+
+    print OUTPUT "<tr><th id=\"$id\">$t</th><td>\n";
+    foreach my $l (@{$cells{$t}}) {
+      print OUTPUT "$l\n";
+    }
+    print OUTPUT "</td></tr>\n";
+  }
+  print OUTPUT "</table>\n";
+  print OUTPUT "</body></html>\n";
+  close OUTPUT;
+
+  system("date");
+  select undef, undef, undef, 10;
+}
+
+sub help {
+  return "usage: enhance <output [http]> <input> <input...>";
+}
+
+sub time2id {
+  my ($t) = @_;
+
+  $t =~ s/ /_/g;
+
+  return $t;
+}
