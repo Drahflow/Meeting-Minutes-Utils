@@ -11,6 +11,7 @@ ab xant Antrag
 ab xvor Vorschlag
 ab xV Versammlungsleiter
 ab xW Wahlleiter
+ab xA Antragsteller
 ab xc Applaus.
 ab xkg keine Gegenrede
 ab xg Gegenrede

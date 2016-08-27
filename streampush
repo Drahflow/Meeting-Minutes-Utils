@@ -1,0 +1,11 @@
+#!/bin/zsh
+
+while sleep 0.1; do
+  if [ "$2" = "" ]; then
+    rsync -vvv --port 1234 "$1" 127.0.0.1::pwd/protocol/${3:-$1}
+  else
+    while sleep "$2"; do
+      rsync -vvv --port 1234 "$1" 127.0.0.1::pwd/protocol/${3:-$1}
+    done
+  fi
+done

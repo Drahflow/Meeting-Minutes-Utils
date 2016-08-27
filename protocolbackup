@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+while sleep 60; do
+  cp -v "$1" "$2 $(date -Is)";
+done

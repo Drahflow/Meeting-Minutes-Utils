@@ -1,0 +1,20 @@
+#!/bin/sh
+
+if [ "$1" = "" ]; then
+	echo "Usage ./auto <main protocol>"
+	exit 1
+fi
+
+(
+  echo "screen -t upd-t ./update.pl '$1' '$1.512.http' 512 http"
+  echo "screen -t upd-f ./update.pl '$1' '$1.http' all http"
+  echo "screen -t enh-e ./enhance '$1.enhanced.http' '$1'"
+  echo "screen -t sf-t /root/sfhttpd/sfhttpd 8080 '$1.512.http'"
+  echo "screen -t sf-f /root/sfhttpd/sfhttpd 8081 '$1.http'"
+  echo "screen -t sf-e /root/sfhttpd/sfhttpd 8082 '$1.enhanced.http'"
+  echo "screen -t sf-t /root/sfhttpd/sfhttpd 8083 '$1.512.http'"
+  echo "screen -t sf-t /root/sfhttpd/sfhttpd 8086 '$1.512.http'"
+  echo "screen -t sf-t /root/sfhttpd/sfhttpd 8089 '$1.512.http'"
+) > 'auto.screen.rc'
+
+screen -S protocol -c auto.screen.rc

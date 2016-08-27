@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+while sleep 0.3; do
+  time mvim -u /dev/null -c ":set remote=$1" -c ":w! $2" -c ":q!"
+  ls -la "$2"
+done

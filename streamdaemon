@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+ssh -vvv root@drahflow.name killall rsync
+sleep 3
+echo Connecting...
+ssh -vvv -L 1234:127.0.0.1:1234 root@drahflow.name 'cd /var/www && rsync --daemon --port 1234 --no-detach -v --config=rsyncd.conf'
